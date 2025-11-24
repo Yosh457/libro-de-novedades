@@ -27,9 +27,18 @@
                     <input type="password" name="password" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg" required>
                 </div>
                 <div>
-                    <label for="jefe_directo_id" class="block text-sm font-medium text-gray-700">Jefe Directo (Opcional)</label>
+                    <label for="jefe_directo_id" class="block text-sm font-medium text-gray-700">Jefe Directo Principal</label>
                     <select name="jefe_directo_id" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg">
                         <option value="">Sin jefe directo</option>
+                        {% for jefe in jefes %}
+                            <option value="{{ jefe.id }}">{{ jefe.nombre_completo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="segundo_jefe_id" class="block text-sm font-medium text-gray-700">Segundo Jefe (Opcional)</label>
+                    <select name="segundo_jefe_id" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">N/A</option>
                         {% for jefe in jefes %}
                             <option value="{{ jefe.id }}">{{ jefe.nombre_completo }}</option>
                         {% endfor %}

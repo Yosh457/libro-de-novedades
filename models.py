@@ -105,13 +105,20 @@ class Usuario(db.Model, UserMixin):
     calidad_juridica = db.relationship('CalidadJuridica', back_populates='usuarios')
     categoria = db.relationship('Categoria', back_populates='usuarios')
 
-    # --- Relación Reflexiva (Jefe/Subordinado) ---
+    # --- Relación Reflexiva (Jefe Principal) ---
     jefe_directo_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
-    # Esta relación nos permite tener una lista de 'subordinados' para un usuario (jefe).
     subordinados = db.relationship('Usuario',
                                   backref=db.backref('jefe_directo', remote_side=[id]),
-                                  lazy='dynamic')
+                                  lazy='dynamic',
+                                  foreign_keys=[jefe_directo_id]) # Especificamos foreign_keys
 
+    # --- Relación Segundo Jefe ---
+    segundo_jefe_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
+    segundo_jefe = db.relationship('Usuario', 
+                                   remote_side=[id],
+                                   foreign_keys=[segundo_jefe_id],
+                                   backref='subordinados_secundarios')
+    
     # --- Métodos para la gestión de contraseñas ---
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

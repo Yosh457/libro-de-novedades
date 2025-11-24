@@ -54,8 +54,13 @@ def check_password_change(f):
 
 # --- FUNCIONES DE LÓGICA ---
 def es_superior_jerarquico(usuario_actual, funcionario_a_ver):
-    if not funcionario_a_ver.jefe_directo:
-        return False
+    # 1. Verificación directa (Padre inmediato o Segundo Jefe)
+    if (funcionario_a_ver.jefe_directo_id == usuario_actual.id) or \
+       (funcionario_a_ver.segundo_jefe_id == usuario_actual.id):
+        return True
+
+    # 2. Recorrido hacia arriba (Jerarquía)
+    # Nota: Seguimos la línea del "Jefe Principal" para la jerarquía hacia arriba.
     jefe_actual = funcionario_a_ver.jefe_directo
     while jefe_actual:
         if jefe_actual.id == usuario_actual.id:

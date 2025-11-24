@@ -15,7 +15,14 @@ def panel_encargado_unidad():
     page = request.args.get('page', 1, type=int)
     busqueda = request.args.get('busqueda', '')
 
-    query = Usuario.query.filter_by(jefe_directo_id=current_user.id)
+    # --- CAMBIO: Buscamos si es Jefe Directo O Segundo Jefe ---
+    query = Usuario.query.filter(
+        or_(
+            Usuario.jefe_directo_id == current_user.id,
+            Usuario.segundo_jefe_id == current_user.id
+        )
+    )
+    
     if busqueda:
         query = query.filter(
             or_(

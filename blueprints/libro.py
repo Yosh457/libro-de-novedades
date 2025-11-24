@@ -130,18 +130,26 @@ def crear_comentario(funcionario_id):
     funcionario = Usuario.query.get_or_404(funcionario_id)
 
     puede_anotar = False
+    # Regla 1: Jefa Salud
     if (current_user.rol.nombre == 'Jefa Salud' and
         funcionario.rol.nombre in ['Encargado de Recinto', 'Encargado de Unidad'] and
         funcionario.jefe_directo_id == current_user.id):
         puede_anotar = True
+
+    # Regla 2: Encargado de Recinto
     elif (current_user.rol.nombre == 'Encargado de Recinto' and
           funcionario.rol.nombre == 'Encargado de Unidad' and
           funcionario.jefe_directo_id == current_user.id):
         puede_anotar = True
+
+    # --- REGLA 3 ACTUALIZADA ---
+    # Encargado de Unidad anota a Funcionario (Jefe Directo O Segundo Jefe)
     elif (current_user.rol.nombre == 'Encargado de Unidad' and
           funcionario.rol.nombre == 'Funcionario' and
-          funcionario.jefe_directo_id == current_user.id):
+          (funcionario.jefe_directo_id == current_user.id or funcionario.segundo_jefe_id == current_user.id)): # <--- AÑADIDO EL OR
         puede_anotar = True
+    # ---------------------------
+        
     elif current_user.rol.nombre == 'Admin':
         puede_anotar = True
 

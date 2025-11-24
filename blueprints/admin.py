@@ -74,12 +74,13 @@ def crear_usuario():
         establecimiento_id = request.form.get('establecimiento_id')
         calidad_id = request.form.get('calidad_id')
         categoria_id = request.form.get('categoria_id')
-        jefe_id = request.form.get('jefe_directo_id')
+        # --- CAMBIOS AQUÍ ---
+        jefe_id = request.form.get('jefe_directo_id') or None
+        segundo_jefe_id = request.form.get('segundo_jefe_id') or None # Nuevo campo
         forzar_cambio = request.form.get('forzar_cambio_clave') == '1'
 
         if Usuario.query.filter_by(email=email).first():
             flash('El correo electrónico ya está registrado.', 'danger')
-            # Nota: usamos .crear_usuario porque estamos dentro del mismo blueprint
             return redirect(url_for('admin.crear_usuario'))
         if Usuario.query.filter_by(rut=rut).first():
             flash('El RUT ya está registrado.', 'danger')
@@ -94,7 +95,8 @@ def crear_usuario():
             establecimiento_id=establecimiento_id,
             calidad_juridica_id=calidad_id,
             categoria_id=categoria_id,
-            jefe_directo_id=jefe_id if jefe_id else None,
+            jefe_directo_id=jefe_id,
+            segundo_jefe_id=segundo_jefe_id, # Guardamos el segundo jefe
         )
         nuevo_usuario.set_password(password)
         nuevo_usuario.cambio_clave_requerido = forzar_cambio
@@ -142,8 +144,12 @@ def editar_usuario(id):
         usuario_a_editar.establecimiento_id = request.form.get('establecimiento_id')
         usuario_a_editar.calidad_juridica_id = request.form.get('calidad_id')
         usuario_a_editar.categoria_id = request.form.get('categoria_id')
-        jefe_id = request.form.get('jefe_directo_id')
-        usuario_a_editar.jefe_directo_id = jefe_id if jefe_id else None
+        # --- CAMBIOS AQUÍ ---
+        jefe_id = request.form.get('jefe_directo_id') or None
+        segundo_jefe_id = request.form.get('segundo_jefe_id') or None # Nuevo campo
+        usuario_a_editar.jefe_directo_id = jefe_id
+        usuario_a_editar.segundo_jefe_id = segundo_jefe_id
+        
         forzar_cambio = request.form.get('forzar_cambio_clave') == '1'
         usuario_a_editar.cambio_clave_requerido = forzar_cambio
 
