@@ -413,6 +413,29 @@ def generar_pdf(funcionario_id):
                 pdf.set_y(y_antes + altura_celda) 
 
             pdf.ln(10)
+    # === INICIO: TEXTO LEGAL AL FINAL DEL PDF ===
+    # Verificamos si queda espacio en la página, si no, saltamos a una nueva
+    # 230mm es un buen límite (la página carta tiene ~280mm de alto)
+    if pdf.get_y() > 230:
+        pdf.add_page()
+        
+    # Movemos el cursor hacia el final (opcional, o dejamos que fluya)
+    pdf.ln(5)
+    
+    # Configuramos fuente cursiva y gris para que parezca nota legal
+    pdf.set_font('Helvetica', 'I', 9) 
+    pdf.set_text_color(100, 100, 100) # Gris oscuro
+    
+    texto_legal = (
+        "El registro de información en esta aplicación tiene carácter exclusivamente orientador y de ayuda memoria "
+        "para la gestión diaria entre el jefe directo y funcionario. No constituye antecedente válido para el proceso "
+        "de Calificación Funcionaria. Para efectos de evaluación del desempeño, se considerarán únicamente las "
+        "Anotaciones de Mérito y de Demérito debidamente formalizadas según la normativa vigente."
+    )
+    
+    # Imprimimos el texto centrado y con ajuste de línea automático
+    pdf.multi_cell(0, 5, texto_legal, align='C')
+    # === FIN: TEXTO LEGAL ==
 
     return Response(bytes(pdf.output()),
                     mimetype='application/pdf',
