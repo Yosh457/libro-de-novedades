@@ -91,7 +91,8 @@
                 <fieldset>
                     <legend class="text-lg font-medium text-gray-900">Opciones de Contraseña</legend>
                     <div class="mt-4 flex items-center">
-                        <input type="checkbox" name="forzar_cambio_clave" value="1" id="forzar_cambio_clave" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                        <input type="checkbox" name="forzar_cambio_clave" value="1" id="forzar_cambio_clave" class="h-4 w-4 text-blue-600 border-gray-300 rounded" 
+                                {% if usuario.cambio_clave_requerido %}checked{% endif %}>
                         <label for="forzar_cambio_clave" class="ml-3 block text-sm font-medium text-gray-700">Forzar cambio de contraseña en el primer inicio de sesión</label>
                     </div>
                 </fieldset>

@@ -6,6 +6,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
 import pytz
 import secrets
+import re
 
 # Importamos las dependencias
 from models import db, Usuario
@@ -16,6 +17,17 @@ auth_bp = Blueprint(
     'auth', __name__,
     template_folder='../templates' # Le decimos dónde buscar los templates
 )
+
+# --- VALIDACIÓN DE SEGURIDAD ---
+def es_password_segura(password):
+    """Valida que la contraseña cumpla con los requisitos de seguridad."""
+    if len(password) < 8:
+        return False
+    if not re.search(r"[A-Z]", password): # Busca al menos una mayúscula
+        return False
+    if not re.search(r"[0-9]", password): # Busca al menos un número
+        return False
+    return True
 
 # --- DICCIONARIO DE REDIRECCIONES ---
 # Define a dónde va cada rol. Si agregas un rol nuevo, solo editas esto.
@@ -33,7 +45,7 @@ def obtener_ruta_redireccion(usuario):
     return url_for(endpoint)
 
 # 2. Movemos todas las rutas de autenticación aquí
-# y cambiamos @app.route por @auth_bp.route
+# --- RUTAS ---
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     # 1. Redirección inteligente si ya está logueado
@@ -57,8 +69,12 @@ def login():
         login_user(usuario)
         registrar_log(accion="Inicio de Sesión", detalles=f"Usuario {usuario.nombre_completo} (ID: {usuario.id}) inició sesión.")
         db.session.commit()
-        flash('¡Has iniciado sesión correctamente!', 'success')
+
+        # Verificar si requiere cambio de clave INMEDIATAMENTE
+        if usuario.cambio_clave_requerido:
+            return redirect(url_for('auth.cambiar_clave'))
         
+        flash('¡Has iniciado sesión correctamente!', 'success')
         # 2. Redirección inteligente después del login
         return redirect(obtener_ruta_redireccion(usuario))
 
@@ -80,6 +96,11 @@ def cambiar_clave():
         return redirect(url_for('auth.login')) # Redirigimos al login
     if request.method == 'POST':
         nueva_password = request.form.get('nueva_password')
+        # --- VALIDACIÓN DE SEGURIDAD ---
+        if not es_password_segura(nueva_password):
+            flash('Error: La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.', 'danger')
+            return render_template('cambiar_clave.html')
+        # -------------------------------
         current_user.set_password(nueva_password)
         current_user.cambio_clave_requerido = False
         db.session.commit()
@@ -118,6 +139,11 @@ def resetear_clave(token):
         return redirect(url_for('auth.solicitar_reseteo'))
     if request.method == 'POST':
         nueva_password = request.form.get('nueva_password')
+        # --- VALIDACIÓN DE SEGURIDAD ---
+        if not es_password_segura(nueva_password):
+            flash('Error: La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.', 'danger')
+            return render_template('resetear_clave.html')
+        # -------------------------------
         usuario.set_password(nueva_password)
         usuario.reset_token = None
         usuario.reset_token_expiracion = None
