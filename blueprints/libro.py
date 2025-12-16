@@ -7,7 +7,7 @@ from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 
 # Importamos modelos y utilidades
-from models import db, Usuario, Comentario, Factor, SubFactor, Unidad
+from models import db, Usuario, Comentario, Factor, SubFactor, Unidad, UsuarioGlobal
 from utils import check_password_change, registrar_log, enviar_correo_notificacion_comentario, es_superior_jerarquico
 
 libro_bp = Blueprint('libro', __name__, template_folder='../templates')
@@ -255,9 +255,10 @@ def ver_equipo_encargado(encargado_id):
 
     if not (es_jefe_directo_del_encargado or es_admin):
         abort(403)
-        
+    
+    # --- CAMBIO IMPORTANTE: Join para ordenar por nombre global ---
     query = Usuario.query.filter_by(jefe_directo_id=encargado_id)
-    funcionarios_equipo = query.order_by(Usuario.nombre_completo).paginate(page=page, per_page=10, error_out=False)
+    funcionarios_equipo = query.join(Usuario.identidad).order_by(UsuarioGlobal.nombre_completo).paginate(page=page, per_page=10, error_out=False)
 
     return render_template('ver_equipo.html',
                         encargado=encargado, 
