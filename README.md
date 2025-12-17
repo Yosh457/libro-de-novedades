@@ -1,5 +1,10 @@
 # 📘 Sistema Libro de Novedades - Salud MAHO
 
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-3.1.2-green.svg)
+![Database](https://img.shields.io/badge/Database-MySQL-blue.svg)
+![ORM](https://img.shields.io/badge/ORM-SQLAlchemy-red.svg)
+
 Aplicación web desarrollada para la **Unidad de TICs del Departamento de Salud de la Municipalidad de Alto Hospicio**. Este sistema digitaliza el proceso de "Hoja de Vida" de los funcionarios, reemplazando el registro en papel por una gestión centralizada, segura y transparente de las anotaciones de mérito y demérito.
 
 ## 🚀 Características Principales
