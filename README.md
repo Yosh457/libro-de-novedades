@@ -10,48 +10,58 @@ Aplicación web desarrollada para la **Unidad de TICs del Departamento de Salud 
 ## 🚀 Características Principales
 
 * **Digitalización de Procesos:** Registro histórico de eventos (felicitaciones, amonestaciones, observaciones) categorizados por Factores y Subfactores.
-* **Flujo de Notificaciones:** Envío automático de correos electrónicos al funcionario cuando se crea una nueva anotación.
+* **Flujo de Notificaciones:** Envío automático de correos electrónicos al funcionario cuando se crea una nueva anotación, con plantillas institucionales unificadas.
 * **Gestión de Jerarquías Compleja:**
     * **Doble Jefatura:** Soporte para asignar un "Jefe Directo" y un "Segundo Jefe" simultáneos, permitiendo que ambos gestionen al mismo funcionario.
     * **Perfiles de Rol:** Admin, Jefa de Salud, Encargado de Recinto, Encargado de Unidad y Funcionario.
 * **Toma de Conocimiento:** Flujo digital donde el funcionario debe ingresar al sistema para leer y marcar *“Tomo Conocimiento”* de sus anotaciones, con opción de agregar comentario u observación.
 * **Reportabilidad:**
-    * **Generación de PDF:** Exportación de la Hoja de Vida completa con diseño institucional y nota legal al pie (Librería `FPDF2`).
-    * Filtros avanzados por fecha, tipo de anotación y factor.
-* **Seguridad y Auditoría:**
-    * Protección CSRF en todos los formularios.
-    * Registro detallado de Logs (Inicios de sesión, creación de comentarios, cambios de contraseñas).
-    * Validación de contraseñas seguras.
-    * Forzado de cambio de contraseña en primer inicio.
+    * **Generación de PDF:** Exportación de la Hoja de Vida completa generada dinámicamente en el back-end con diseño institucional y nota legal al pie (Librería `fpdf2`).
+    * Filtros avanzados por fecha, tipo de anotación y factor en todas las vistas.
+* **Seguridad, Auditoría y UX:**
+    * Protección CSRF y prevención de doble envío en todos los formularios.
+    * Registro detallado de Logs (Inicios de sesión, creación de comentarios, cambios de estado).
+    * Cierre de sesión dinámico automático por inactividad del usuario.
+    * Validación estricta de contraseñas seguras y forzado de cambio en el primer inicio.
 
 ## 🛠️ Tecnologías Utilizadas
 
-* **Backend:** Python 3, Flask.
+* **Backend:** Python 3, Flask (Patrón Application Factory).
 * **Base de Datos:** MySQL (SQLAlchemy ORM).
-* **Frontend:** HTML5, Jinja2, TailwindCSS (CDN), JavaScript.
+* **Frontend:** HTML5, Jinja2, TailwindCSS (CDN), JavaScript Vanilla.
 * **Librerías Clave:**
-    * `FPDF2`: Generación de reportes PDF compatibles con Unicode.
-    * `Flask-Login`: Gestión de sesiones.
-    * `Flask-Mail`: Envío de notificaciones SMTP.
-    * `pytz`: Gestión de Zona Horaria (America/Santiago).
+    * `fpdf2`: Generación de reportes PDF programáticos compatibles con Unicode.
+    * `Flask-Login`: Gestión avanzada de sesiones.
+    * `smtplib` / `email.mime`: Motor nativo para envío de notificaciones seguras.
+    * `pytz`: Gestión de Zona Horaria estricta (`America/Santiago`).
+    * `waitress`: Servidor WSGI para despliegue en producción.
 
 ## 📂 Estructura del Proyecto
 
-El proyecto sigue una arquitectura modular basada en **Blueprints**:
+El proyecto sigue una arquitectura modular y estandarizada basada en **Blueprints**:
 
 ```text
 libro_de_novedades/
-├── blueprints/          # Lógica modular (Admin, Auth, Libro, Jefa, Unidad, Recinto)
-├── static/              # Assets (Logos institucionales, JS, CSS)
-├── templates/           # Vistas HTML (Jinja2) con herencia de base.html
-├── utils/               # Módulo de utilidades refactorizado
+├── blueprints/          # Lógica modular (admin, auth, libro, jefa_salud, recinto, unidad)
+├── static/              # Assets estáticos
+│   ├── css/             # Hojas de estilo
+│   ├── img/             # Logos institucionales e iconos
+│   └── js/              # Scripts (validaciones, modales, filtros, timeout)
+├── templates/           # Vistas HTML (Jinja2) con herencia de base.html y macros
+│   ├── admin/           # Vistas del panel de administración y logs
+│   ├── auth/            # Vistas de inicio de sesión y recuperación de claves
+│   ├── errors/          # Páginas de error personalizadas (403, 404, 500)
+│   ├── jefatura/        # Vistas de paneles para los roles de jefatura
+│   └── libro/           # Vistas principales del libro de novedades y comentarios
+├── utils/               # Módulo genérico de utilidades
 │   ├── __init__.py      # Exportación de funciones
-│   ├── decorators.py    # Decoradores de roles (admin_required, jefa_required, etc.)
-│   └── helpers.py       # Lógica auxiliar (Correos, Logs, Jerarquía, PDF)
-├── app.py               # Inicialización de la aplicación
-├── models.py            # Modelos de Base de Datos (Usuario, Comentario, Factor, etc.)
-├── extensions.py        # Instancias de extensiones (login_manager, csrf)
-└── requirements.txt     # Dependencias del proyecto
+│   ├── decorators.py    # Control de acceso por roles y estado de contraseñas
+│   ├── email.py         # Motor de plantillas HTML y envío de correos
+│   └── helpers.py       # Lógica auxiliar (Cálculo de jerarquía, Logs del sistema)
+├── app.py               # Archivo principal (Application Factory e inicialización)
+├── extensions.py        # Instancias desacopladas (Flask-Login, CSRFProtect)
+├── models.py            # Modelos SQLAlchemy (Usuario, Comentario, Factor, Log)
+└── requirements.txt     # Dependencias optimizadas del proyecto
 ```
 ## 🌿 Gestión de Ramas y Despliegue
 Este repositorio maneja dos flujos de trabajo distintos para separar el desarrollo local de la producción con identidad centralizada:
@@ -95,12 +105,17 @@ pip install -r requirements.txt
 4. Configurar variables de entorno (.env):
 
 ```env
-SECRET_KEY=tu_clave_secreta
-MYSQL_PASSWORD=tu_password_mysql
-EMAIL_USUARIO=tu_correo@gmail.com
-EMAIL_CONTRASENA=tu_contraseña_aplicacion
+SECRET_KEY="tu_clave_secreta_aqui"
+MYSQL_HOST="127.0.0.1"
+MYSQL_PORT="3306"
+MYSQL_USER="root"
+MYSQL_PASSWORD="tu_password_mysql"
+MYSQL_DB="hoja_de_vida_db"
+
+EMAIL_USUARIO="unidad.tics@mahosalud.cl"
+EMAIL_CONTRASENA="tu_contraseña_aplicacion"
 ```
-5. Ejecutar:
+5. Inicializar la base de datos y ejecutar el servidor de desarrollo:
 
 ```bash
 python app.py
