@@ -12,9 +12,14 @@ from utils import check_password_change, registrar_log, enviar_correo_notificaci
 
 libro_bp = Blueprint('libro', __name__, template_folder='../templates')
 
-@libro_bp.route('/libro_novedades')
+# --- PROTECCIÓN GLOBAL BASE ---
+@libro_bp.before_request
 @login_required
 @check_password_change
+def before_request():
+    pass
+
+@libro_bp.route('/libro_novedades')
 def mi_libro_novedades():
     page = request.args.get('page', 1, type=int)
     tipo_filtro = request.args.get('tipo_filtro', '')
@@ -52,7 +57,8 @@ def mi_libro_novedades():
     factores_para_filtro = [{'id': f.id, 'nombre': f.nombre} for f in Factor.query.order_by(Factor.nombre).all()]
     subfactores_para_filtro = [{'id': sf.id, 'nombre': sf.nombre, 'factor_id': sf.factor_id} for sf in SubFactor.query.all()]
 
-    return render_template('mi_libro_novedades.html', 
+    # Actualizado a la subcarpeta libro/
+    return render_template('libro/mi_libro_novedades.html', 
                         comentarios_pendientes=comentarios_pendientes,
                         historial_pagination=historial_pagination,
                         factores_para_filtro=factores_para_filtro,
@@ -64,8 +70,6 @@ def mi_libro_novedades():
                         fecha_fin=fecha_fin_str)
 
 @libro_bp.route('/libro_novedades/<int:funcionario_id>')
-@login_required
-@check_password_change
 def ver_libro_novedades_funcionario(funcionario_id):
     page = request.args.get('page', 1, type=int)
     funcionario = Usuario.query.get_or_404(funcionario_id)
@@ -111,7 +115,8 @@ def ver_libro_novedades_funcionario(funcionario_id):
     factores_para_filtro = [{'id': f.id, 'nombre': f.nombre} for f in Factor.query.order_by(Factor.nombre).all()]
     subfactores_para_filtro = [{'id': sf.id, 'nombre': sf.nombre, 'factor_id': sf.factor_id} for sf in SubFactor.query.all()]
     
-    return render_template('libro_novedades_funcionario.html', 
+    # Actualizado a la subcarpeta libro/
+    return render_template('libro/libro_novedades_funcionario.html', 
                         funcionario=funcionario, 
                         comentarios_pendientes=comentarios_pendientes,
                         historial_pagination=historial_pagination,
@@ -124,8 +129,6 @@ def ver_libro_novedades_funcionario(funcionario_id):
                         fecha_fin=fecha_fin_str)
 
 @libro_bp.route('/crear_comentario/<int:funcionario_id>', methods=['GET', 'POST'])
-@login_required
-@check_password_change 
 def crear_comentario(funcionario_id):
     funcionario = Usuario.query.get_or_404(funcionario_id)
 
@@ -142,20 +145,17 @@ def crear_comentario(funcionario_id):
           funcionario.jefe_directo_id == current_user.id):
         puede_anotar = True
 
-    # --- REGLA 3 ACTUALIZADA ---
-    # Encargado de Unidad anota a Funcionario (Jefe Directo O Segundo Jefe)
+    # Regla 3: Encargado de Unidad
     elif (current_user.rol.nombre == 'Encargado de Unidad' and
           funcionario.rol.nombre == 'Funcionario' and
-          (funcionario.jefe_directo_id == current_user.id or funcionario.segundo_jefe_id == current_user.id)): # <--- AÑADIDO EL OR
+          (funcionario.jefe_directo_id == current_user.id or funcionario.segundo_jefe_id == current_user.id)):
         puede_anotar = True
-    # ---------------------------
         
     elif current_user.rol.nombre == 'Admin':
         puede_anotar = True
 
     if not puede_anotar:
         flash('No tienes permisos para crear comentarios a este usuario.', 'danger')
-        # Usamos las nuevas rutas de blueprints
         if current_user.rol.nombre == 'Jefa Salud':
             return redirect(url_for('jefa_salud.panel_jefa_salud'))
         elif current_user.rol.nombre == 'Encargado de Recinto':
@@ -166,7 +166,6 @@ def crear_comentario(funcionario_id):
             return redirect(url_for('libro.mi_libro_novedades'))
 
     if request.method == 'POST':
-        # Definir zona horaria
         chile_tz = pytz.timezone('America/Santiago')
         tipo = request.form.get('tipo')
         subfactor_id = request.form.get('subfactor_id')
@@ -193,7 +192,6 @@ def crear_comentario(funcionario_id):
         enviar_correo_notificacion_comentario(nuevo_comentario)
         flash(f'Comentario creado con éxito para {funcionario.nombre_completo}.', 'success')
 
-        # Redirecciones usando blueprints
         if current_user.rol.nombre == 'Jefa Salud':
             return redirect(url_for('jefa_salud.panel_jefa_salud'))
         elif current_user.rol.nombre == 'Encargado de Recinto':
@@ -201,18 +199,18 @@ def crear_comentario(funcionario_id):
         elif current_user.rol.nombre == 'Encargado de Unidad':
             return redirect(url_for('unidad.panel_encargado_unidad'))
         else: 
-            return redirect(url_for('admin.admin_panel'))
+            return redirect(url_for('admin.panel'))
         
     factores = Factor.query.order_by(Factor.id).all()
     subfactores = SubFactor.query.order_by(SubFactor.id).all()
 
-    return render_template('crear_comentario.html', 
+    # Actualizado a la subcarpeta libro/
+    return render_template('libro/crear_comentario.html', 
                            funcionario=funcionario, 
                            factores=factores, 
                            subfactores=subfactores)
 
 @libro_bp.route('/comentario/ver/<int:folio>', methods=['GET', 'POST'])
-@login_required
 def ver_comentario(folio):
     comentario = Comentario.query.get_or_404(folio)
     funcionario_del_comentario = comentario.funcionario
@@ -225,7 +223,6 @@ def ver_comentario(folio):
 
     if request.method == 'POST':
         if 'tomo_conocimiento' in request.form:
-            # Definir zona horaria
             chile_tz = pytz.timezone('America/Santiago')
             comentario.estado = 'Aceptada'
             comentario.fecha_aceptacion = datetime.now(chile_tz).replace(tzinfo=None)
@@ -242,11 +239,10 @@ def ver_comentario(folio):
         else:
             flash('Debes marcar la casilla "Tomo conocimiento" para confirmar.', 'warning')
     
-    return render_template('ver_comentario.html', comentario=comentario)
+    # Actualizado a la subcarpeta libro/
+    return render_template('libro/ver_comentario.html', comentario=comentario)
 
 @libro_bp.route('/ver_equipo_encargado/<int:encargado_id>')
-@login_required
-@check_password_change
 def ver_equipo_encargado(encargado_id):
     page = request.args.get('page', 1, type=int)
     encargado = Usuario.query.get_or_404(encargado_id)
@@ -259,21 +255,20 @@ def ver_equipo_encargado(encargado_id):
     query = Usuario.query.filter_by(jefe_directo_id=encargado_id)
     funcionarios_equipo = query.order_by(Usuario.nombre_completo).paginate(page=page, per_page=10, error_out=False)
 
-    return render_template('ver_equipo.html',
+    # Actualizado a la subcarpeta jefatura/ (según donde lo guardamos)
+    return render_template('jefatura/ver_equipo.html',
                         encargado=encargado, 
                         pagination=funcionarios_equipo)
 
 # API para JS (usada en formularios)
 @libro_bp.route('/api/unidades/<int:establecimiento_id>')
-@login_required
 def get_unidades_por_establecimiento(establecimiento_id):
     unidades = Unidad.query.filter_by(establecimiento_id=establecimiento_id).order_by(Unidad.nombre).all()
     unidades_lista = [{'id': u.id, 'nombre': u.nombre} for u in unidades]
     return jsonify(unidades_lista)
 
-# --- GENERACIÓN DE PDF (USANDO FPDF2 PARA SERVIDOR LINUX) ---
+# --- GENERACIÓN DE PDF ---
 @libro_bp.route('/generar_pdf/<int:funcionario_id>')
-@login_required
 def generar_pdf(funcionario_id):
     funcionario = Usuario.query.get_or_404(funcionario_id)
     es_el_funcionario = (current_user.id == funcionario.id)
@@ -283,6 +278,7 @@ def generar_pdf(funcionario_id):
     if not (es_el_funcionario or es_superior or es_admin):
         abort(403)
 
+    # --- La lógica del PDF se mantiene exactamente igual (tuya) ---
     tipo_filtro = request.args.get('tipo', '')
     factor_filtro = request.args.get('factor', '')
     fecha_inicio_str = request.args.get('fecha_inicio', '')
@@ -307,7 +303,6 @@ def generar_pdf(funcionario_id):
     
     comentarios = query.order_by(Comentario.fecha_creacion.asc()).all()
     
-    # Preparar textos
     periodo_reporte = ""
     if fecha_inicio_str and fecha_fin_str:
         fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d')
@@ -321,7 +316,6 @@ def generar_pdf(funcionario_id):
          periodo_reporte = f"Hasta: {fecha_fin.strftime('%d/%m/%Y')}"
     fecha_actual = date.today().strftime('%d/%m/%Y')
 
-    # --- FPDF2 LOGIC ---
     pdf = FPDF(orientation='P', unit='mm', format='Letter')
     pdf.add_page()
     pdf.set_font('Helvetica', '', 11)
@@ -413,18 +407,13 @@ def generar_pdf(funcionario_id):
                 pdf.set_y(y_antes + altura_celda) 
 
             pdf.ln(10)
-    # === INICIO: TEXTO LEGAL AL FINAL DEL PDF ===
-    # Verificamos si queda espacio en la página, si no, saltamos a una nueva
-    # 230mm es un buen límite (la página carta tiene ~280mm de alto)
+
     if pdf.get_y() > 230:
         pdf.add_page()
         
-    # Movemos el cursor hacia el final (opcional, o dejamos que fluya)
     pdf.ln(5)
-    
-    # Configuramos fuente cursiva y gris para que parezca nota legal
     pdf.set_font('Helvetica', 'I', 9) 
-    pdf.set_text_color(100, 100, 100) # Gris oscuro
+    pdf.set_text_color(100, 100, 100)
     
     texto_legal = (
         "El registro de información en esta aplicación tiene carácter exclusivamente orientador y de ayuda memoria "
@@ -432,10 +421,7 @@ def generar_pdf(funcionario_id):
         "de Calificación Funcionaria. Para efectos de evaluación del desempeño, se considerarán únicamente las "
         "Anotaciones de Mérito y de Demérito debidamente formalizadas según la normativa vigente."
     )
-    
-    # Imprimimos el texto centrado y con ajuste de línea automático
     pdf.multi_cell(0, 5, texto_legal, align='C')
-    # === FIN: TEXTO LEGAL ==
 
     return Response(bytes(pdf.output()),
                     mimetype='application/pdf',

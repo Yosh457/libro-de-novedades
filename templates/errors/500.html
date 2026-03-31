@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Error del Servidor{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto text-center py-20">
+    <h1 class="text-6xl font-bold text-yellow-600 mb-4">500</h1>
+    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Error Interno del Servidor</h2>
+    <p class="text-gray-600 mb-8">Algo salió mal de nuestro lado. El equipo de soporte ya fue notificado.</p>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Volver al Inicio</a>
+</div>
+{% endblock %}

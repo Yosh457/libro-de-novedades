@@ -7,15 +7,19 @@ from utils import encargado_unidad_required, check_password_change
 
 unidad_bp = Blueprint('unidad', __name__, template_folder='../templates', url_prefix='/encargado_unidad')
 
-@unidad_bp.route('/panel')
-@check_password_change
+# --- PROTECCIÓN GLOBAL DEL BLUEPRINT ---
+@unidad_bp.before_request
 @login_required
+@check_password_change
 @encargado_unidad_required
+def before_request():
+    pass
+
+@unidad_bp.route('/panel')
 def panel_encargado_unidad():
     page = request.args.get('page', 1, type=int)
     busqueda = request.args.get('busqueda', '')
 
-    # --- CAMBIO: Buscamos si es Jefe Directo O Segundo Jefe ---
     query = Usuario.query.filter(
         or_(
             Usuario.jefe_directo_id == current_user.id,
@@ -36,6 +40,8 @@ def panel_encargado_unidad():
     pagination = query.order_by(Usuario.nombre_completo).paginate(
         page=page, per_page=10, error_out=False
     )
-    return render_template('panel_encargado_unidad.html', 
+    
+    # Actualizado a la subcarpeta jefatura/
+    return render_template('jefatura/panel_encargado_unidad.html', 
                            pagination=pagination, 
                            busqueda=busqueda)

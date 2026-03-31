@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Crear Nuevo Usuario{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto my-12 bg-white p-8 rounded-xl shadow-lg">
+    
+    <div class="border-b pb-4 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800">Crear Nuevo Usuario</h2>
+        <p class="text-gray-500 text-sm mt-1">Registra un nuevo funcionario y asigna sus permisos y jerarquía para el Libro de Novedades.</p>
+    </div>
+
+    <form method="post" class="space-y-8">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-6">
+                <div>
+                    <label for="nombre_completo" class="block text-sm font-bold text-gray-700 mb-1">Nombre Completo</label>
+                    <input type="text" name="nombre_completo" id="nombre_completo"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                           placeholder="Ej: Juan Pérez" required>
+                </div>
+                
+                <div>
+                    <label for="rut" class="block text-sm font-bold text-gray-700 mb-1">RUT</label>
+                    <input type="text" name="rut" id="rut"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                           placeholder="12345678-9" required>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-bold text-gray-700 mb-1">Correo Electrónico</label>
+                    <input type="email" name="email" id="email"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                           placeholder="usuario@mahosalud.cl" required>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-bold text-gray-700 mb-1">Contraseña Provisional</label>
+                    <input type="password" name="password" id="password"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                           required>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                    <div class="flex items-center h-5">
+                        <input type="checkbox" name="forzar_cambio_clave" value="1" id="forzar_cambio_clave"
+                               class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" checked>
+                    </div>
+                    <div class="text-sm">
+                        <label for="forzar_cambio_clave" class="font-bold text-gray-700 cursor-pointer select-none">Forzar cambio de contraseña</label>
+                        <p class="text-gray-500 text-xs mt-1">Recomendado. El usuario deberá cambiar su clave al iniciar sesión por primera vez.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <label for="rol_id" class="block text-sm font-bold text-gray-700 mb-1">Rol (Nivel de Acceso)</label>
+                    <select name="rol_id" id="rol_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white" required>
+                        <option value="" disabled selected>Selecciona un rol</option>
+                        {% for rol in roles %}
+                            <option value="{{ rol.id }}">{{ rol.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="establecimiento_id" class="block text-sm font-bold text-gray-700 mb-1">Establecimiento</label>
+                        <select name="establecimiento_id" id="establecimiento-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white" required>
+                            <option value="" disabled selected>Selecciona</option>
+                            {% for est in establecimientos %}
+                                <option value="{{ est.id }}">{{ est.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="unidad_id" class="block text-sm font-bold text-gray-700 mb-1">Unidad</label>
+                        <select name="unidad_id" id="unidad-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white" required disabled>
+                            <option value="" disabled selected>Selecciona Establecimiento</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="calidad_id" class="block text-sm font-bold text-gray-700 mb-1">Calidad Jurídica</label>
+                        <select name="calidad_id" id="calidad_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white" required>
+                            <option value="" disabled selected>Selecciona</option>
+                            {% for calidad in calidades %}
+                                <option value="{{ calidad.id }}">{{ calidad.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="categoria_id" class="block text-sm font-bold text-gray-700 mb-1">Categoría</label>
+                        <select name="categoria_id" id="categoria_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white" required>
+                            <option value="" disabled selected>Selecciona</option>
+                            {% for cat in categorias %}
+                                <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-xl p-5 bg-gray-50">
+                    <h3 class="text-sm font-bold text-gray-800 mb-1">Jerarquía</h3>
+                    <p class="text-xs text-gray-500 mb-4">Define quién evaluará a este funcionario.</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="jefe_directo_id" class="block text-xs font-bold text-gray-700 mb-1">Jefe Directo Principal</label>
+                            <select name="jefe_directo_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm">
+                                <option value="">-- Sin jefe directo --</option>
+                                {% for jefe in jefes %}
+                                    <option value="{{ jefe.id }}">{{ jefe.nombre_completo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="segundo_jefe_id" class="block text-xs font-bold text-gray-700 mb-1">Segundo Jefe (Opcional)</label>
+                            <select name="segundo_jefe_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm">
+                                <option value="">-- N/A --</option>
+                                {% for jefe in jefes %}
+                                    <option value="{{ jefe.id }}">{{ jefe.nombre_completo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-4 pt-6 border-t border-gray-100 mt-8">
+            <a href="{{ url_for('admin.panel') }}" class="px-6 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition">Cancelar</a>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition">Crear Usuario</button>
+        </div>
+    </form>
+</div>
+<script src="{{ url_for('static', filename='js/user_form.js') }}"></script>
+{% endblock %}

@@ -7,10 +7,15 @@ from utils import jefa_required, check_password_change
 
 jefa_salud_bp = Blueprint('jefa_salud', __name__, template_folder='../templates', url_prefix='/jefa')
 
-@jefa_salud_bp.route('/panel')
+# --- PROTECCIÓN GLOBAL DEL BLUEPRINT ---
+@jefa_salud_bp.before_request
 @login_required
 @check_password_change
 @jefa_required
+def before_request():
+    pass
+
+@jefa_salud_bp.route('/panel')
 def panel_jefa_salud():
     page = request.args.get('page', 1, type=int)
     busqueda = request.args.get('busqueda', '')
@@ -35,6 +40,7 @@ def panel_jefa_salud():
         page=page, per_page=10, error_out=False
     )
 
-    return render_template('panel_jefa_salud.html',
+    # Actualizado a la subcarpeta jefatura/
+    return render_template('jefatura/panel_jefa_salud.html',
                         pagination=encargados,
                         busqueda=busqueda)

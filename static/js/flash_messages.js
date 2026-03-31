@@ -1,4 +1,4 @@
-// static/flash_messages.js
+// static/js/flash_messages.js
 document.addEventListener("DOMContentLoaded", () => {
     const flashMessages = document.querySelectorAll(".flash-message");
 

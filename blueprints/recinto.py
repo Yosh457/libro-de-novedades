@@ -7,10 +7,15 @@ from utils import encargado_recinto_required, check_password_change
 
 recinto_bp = Blueprint('recinto', __name__, template_folder='../templates', url_prefix='/recinto')
 
-@recinto_bp.route('/panel')
+# --- PROTECCIÓN GLOBAL DEL BLUEPRINT ---
+@recinto_bp.before_request
 @login_required
 @check_password_change
 @encargado_recinto_required
+def before_request():
+    pass
+
+@recinto_bp.route('/panel')
 def panel_encargado_recinto():
     page = request.args.get('page', 1, type=int)
     busqueda = request.args.get('busqueda', '')
@@ -32,6 +37,7 @@ def panel_encargado_recinto():
         page=page, per_page=10, error_out=False
     )
     
-    return render_template('panel_encargado_recinto.html',
+    # Actualizado a la subcarpeta jefatura/
+    return render_template('jefatura/panel_encargado_recinto.html',
                            pagination=encargados_unidad,
                            busqueda=busqueda)
